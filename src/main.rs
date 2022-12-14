@@ -864,13 +864,10 @@ fn compare_signals(lefto: &str, righto: &str) -> Ordering {
                 return Ordering::Less;
             }
 
-            println!("l is {}", l);
-
             let ld = if *left.peek().unwrap() == '0' {
                 left.next();
                 10
             } else {
-                println!("l is now {}", l);
                 l.to_digit(10).unwrap_or_else(|| panic!("{}", l))
             };
             let rd = if *right.peek().unwrap() == '0' {
@@ -993,15 +990,123 @@ fn do_13g() -> String {
 }
 
 fn do_14s() -> String {
-    // let lines = read_lines("./res/14");
+    let lines = read_lines("./res/14");
 
-    "TODO".to_owned()
+    let mut blocked: HashSet<(i32, i32)> = HashSet::new();
+
+    for line in lines {
+        let coords: Vec<(i32, i32)> = line
+            .split(" -> ")
+            .map(|st| {
+                let (x, y) = st.split_once(',').unwrap();
+                (x.parse::<i32>().unwrap(), y.parse::<i32>().unwrap())
+            })
+            .collect();
+
+        for window in coords.windows(2) {
+            let (x1, y1) = window[0];
+            let (x2, y2) = window[1];
+
+            if x1 != x2 {
+                for x in x1.min(x2)..(x1.max(x2) + 1) {
+                    blocked.insert((x, y1));
+                }
+            } else {
+                for y in y1.min(y2)..(y1.max(y2) + 1) {
+                    blocked.insert((x1, y));
+                }
+            }
+        }
+    }
+
+    let abyss_y = blocked.iter().max_by_key(|c| c.1).unwrap().1;
+
+    let mut result = 0;
+
+    'sand: loop {
+        let (mut x, mut y) = (500, 0);
+        while y < abyss_y {
+            if !blocked.contains(&(x, y + 1)) {
+                y += 1;
+            } else if !blocked.contains(&(x - 1, y + 1)) {
+                x -= 1;
+                y += 1
+            } else if !blocked.contains(&(x + 1, y + 1)) {
+                x += 1;
+                y += 1
+            } else {
+                blocked.insert((x, y));
+                result += 1;
+                continue 'sand;
+            }
+        }
+
+        return result.to_string();
+    }
 }
 
 fn do_14g() -> String {
-    // let lines = read_lines("./res/14");
+    let lines = read_lines("./res/14");
 
-    "TODO".to_owned()
+    let mut blocked: HashSet<(i32, i32)> = HashSet::new();
+
+    for line in lines {
+        let coords: Vec<(i32, i32)> = line
+            .split(" -> ")
+            .map(|st| {
+                let (x, y) = st.split_once(',').unwrap();
+                (x.parse::<i32>().unwrap(), y.parse::<i32>().unwrap())
+            })
+            .collect();
+
+        for window in coords.windows(2) {
+            let (x1, y1) = window[0];
+            let (x2, y2) = window[1];
+
+            if x1 != x2 {
+                for x in x1.min(x2)..(x1.max(x2) + 1) {
+                    blocked.insert((x, y1));
+                }
+            } else {
+                for y in y1.min(y2)..(y1.max(y2) + 1) {
+                    blocked.insert((x1, y));
+                }
+            }
+        }
+    }
+
+    let abyss_y = blocked.iter().max_by_key(|c| c.1).unwrap().1 + 2;
+
+    let mut result = 0;
+
+    let mut path = vec![(500, 0)];
+
+    'sand: loop {
+        loop {
+            let (mut x, mut y) = path.last().unwrap();
+
+            if !blocked.contains(&(x, y + 1)) && y + 1 < abyss_y {
+                y += 1;
+                path.push((x, y))
+            } else if !blocked.contains(&(x - 1, y + 1)) && y + 1 < abyss_y {
+                x -= 1;
+                y += 1;
+                path.push((x, y))
+            } else if !blocked.contains(&(x + 1, y + 1)) && y + 1 < abyss_y {
+                x += 1;
+                y += 1;
+                path.push((x, y))
+            } else {
+                blocked.insert((x, y));
+                result += 1;
+                path.pop();
+                if path.is_empty() {
+                    return result.to_string();
+                }
+                continue 'sand;
+            }
+        }
+    }
 }
 
 fn do_15s() -> String {

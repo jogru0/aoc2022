@@ -1110,15 +1110,93 @@ fn do_14g() -> String {
 }
 
 fn do_15s() -> String {
-    // let lines = read_lines("./res/15");
+    let lines: Vec<String> = read_lines("./res/15").collect();
 
-    "TODO".to_owned()
+    let mut excluded = HashSet::new();
+
+    for line in lines.clone() {
+        let mut split = line.split(|ch| ch == '=' || ch == ',' || ch == ':');
+
+        let sx = split.nth(1).unwrap().parse::<i32>().unwrap();
+        let sy = split.nth(1).unwrap().parse::<i32>().unwrap();
+        let bx = split.nth(1).unwrap().parse::<i32>().unwrap();
+        let by = split.nth(1).unwrap().parse::<i32>().unwrap();
+
+        let d = (sx.abs_diff(bx) + sy.abs_diff(by)) as i32;
+
+        let l = sy.abs_diff(2000000) as i32;
+
+        for x in (sx - d + l)..(sx + d - l + 1) {
+            excluded.insert(x);
+        }
+    }
+
+    for line in lines {
+        let mut split = line.split(|ch| ch == '=' || ch == ',' || ch == ':');
+
+        let _ = split.nth(1).unwrap().parse::<i32>().unwrap();
+        let _ = split.nth(1).unwrap().parse::<i32>().unwrap();
+        let bx = split.nth(1).unwrap().parse::<i32>().unwrap();
+        let by = split.nth(1).unwrap().parse::<i32>().unwrap();
+
+        if by == 2000000 {
+            excluded.remove(&bx);
+        }
+    }
+
+    excluded.len().to_string()
 }
 
 fn do_15g() -> String {
-    // let lines = read_lines("./res/15");
+    let lines = read_lines("./res/15");
 
-    "TODO".to_owned()
+    let data: Vec<_> = lines
+        .map(|line| {
+            let mut split = line.split(|ch| ch == '=' || ch == ',' || ch == ':');
+
+            let sx = split.nth(1).unwrap().parse::<i32>().unwrap();
+            let sy = split.nth(1).unwrap().parse::<i32>().unwrap();
+            let bx = split.nth(1).unwrap().parse::<i32>().unwrap();
+            let by = split.nth(1).unwrap().parse::<i32>().unwrap();
+
+            let d = (sx.abs_diff(bx) + sy.abs_diff(by)) as i32;
+
+            (sx, sy, d)
+        })
+        .collect();
+
+    for y in 0..(4000001) {
+        let mut excluded = Vec::new();
+        excluded.reserve(data.len());
+
+        for (sx, sy, d) in &data {
+            let l = sy.abs_diff(y) as i32;
+
+            if l <= *d {
+                let min = sx - d + l;
+                let max = sx + d - l + 1;
+                excluded.push((min, max));
+            }
+        }
+
+        let mut x = 0;
+
+        'outer: loop {
+            for (min, max) in &excluded {
+                if *min <= x && x < *max {
+                    x = *max;
+                    if (4000001) <= x {
+                        break 'outer;
+                    } else {
+                        continue 'outer;
+                    }
+                }
+            }
+            return ((4000000 * x as i64) + y as i64).to_string();
+        }
+    }
+
+    panic!();
 }
 
 fn do_16s() -> String {

@@ -57,10 +57,10 @@ fn main() {
     print_measured("14s", do_14s);
     print_measured("14g", do_14g);
 
-    print_measured("15s", do_15s);
-    print_measured("15g", do_15g);
+    // print_measured("15s", do_15s);
+    // print_measured("15g", do_15g);
 
-    print_measured("16s", do_16s);
+    // print_measured("16s", do_16s);
     print_measured("16g", do_16g);
 
     print_measured("17s", do_17s);
@@ -1200,17 +1200,283 @@ fn do_15g() -> String {
 }
 
 fn do_16s() -> String {
-    // let lines = read_lines("./res/16");
+    let lines = read_lines("./res/16");
 
-    "TODO".to_owned()
+    let mut flows = Vec::new();
+    let mut untranslated_targets = Vec::new();
+
+    let mut translations: HashMap<String, usize> = HashMap::new();
+
+    for line in lines {
+        let mut iter = line.split(|ch| ch == '=' || ch == ';' || ch == ' ' || ch == ',');
+
+        let room = iter.nth(1).unwrap();
+
+        let flow = iter.nth(3).unwrap().parse::<i32>().unwrap();
+        iter.nth(4);
+        let targets: Vec<String> = iter
+            .filter(|st| !st.is_empty())
+            .map(|st| st.to_owned())
+            .collect();
+
+        translations.insert(room.to_owned(), flows.len());
+        flows.push(flow);
+        untranslated_targets.push(targets);
+    }
+
+    let start_id = translations["AA"];
+
+    let targets: Vec<Vec<usize>> = untranslated_targets
+        .iter()
+        .map(|tgts| tgts.iter().map(|tg| translations[tg]).collect())
+        .collect();
+
+    fn score(
+        remaining_minutes: i32,
+        current_flow: i32,
+        opened_valves_bits: u64,
+        position: usize,
+        flows: &Vec<i32>,
+        targets: &Vec<Vec<usize>>,
+        came_from: usize,
+    ) -> i32 {
+        if remaining_minutes == 0 {
+            return 0;
+        }
+
+        let mut result = -1;
+        if (opened_valves_bits & (1 << position)) == 0 && 1 <= flows[position] {
+            result = result.max(
+                current_flow
+                    + score(
+                        remaining_minutes - 1,
+                        current_flow + flows[position],
+                        opened_valves_bits | (1 << position),
+                        position,
+                        flows,
+                        targets,
+                        position,
+                    ),
+            );
+        }
+        for tgs in &targets[position] {
+            if *tgs == came_from {
+                continue;
+            }
+            result = result.max(
+                current_flow
+                    + score(
+                        remaining_minutes - 1,
+                        current_flow,
+                        opened_valves_bits,
+                        *tgs,
+                        flows,
+                        targets,
+                        position,
+                    ),
+            )
+        }
+
+        result
+    }
+
+    score(30, 0, 0, start_id, &flows, &targets, start_id).to_string()
 }
 
 fn do_16g() -> String {
-    // let lines = read_lines("./res/16");
+    let lines = read_lines("./res/16");
 
-    "TODO".to_owned()
+    let mut flows = Vec::new();
+    let mut untranslated_targets = Vec::new();
+
+    let mut translations: HashMap<String, usize> = HashMap::new();
+
+    for line in lines {
+        let mut iter = line.split(|ch| ch == '=' || ch == ';' || ch == ' ' || ch == ',');
+
+        let room = iter.nth(1).unwrap();
+
+        let flow = iter.nth(3).unwrap().parse::<i32>().unwrap();
+        iter.nth(4);
+        let targets: Vec<String> = iter
+            .filter(|st| !st.is_empty())
+            .map(|st| st.to_owned())
+            .collect();
+
+        translations.insert(room.to_owned(), flows.len());
+        flows.push(flow);
+        untranslated_targets.push(targets);
+    }
+
+    let start_id = translations["AA"];
+
+    let targets: Vec<Vec<usize>> = untranslated_targets
+        .iter()
+        .map(|tgts| tgts.iter().map(|tg| translations[tg]).collect())
+        .collect();
+
+    let number_valves = flows.iter().filter(|flow| 1 <= **flow).count();
+
+    fn visited(targets: &Vec<Vec<usize>>, mut already_there: u64, position: usize) -> u64 {
+        already_there |= 1 << position;
+        for t in &targets[position] {
+            if already_there & (1 << t) != 0 {
+                continue;
+            }
+
+            already_there |= visited(targets, already_there, *t);
+        }
+
+        already_there
+    }
+
+    let already_there = visited(&targets, 0, start_id);
+
+    for i in 0..flows.len() {
+        if already_there & (1 << i) != 0 {
+            println!("found {}", i);
+        }
+    }
+
+    println!("in total {}", already_there.count_ones());
+
+    fn score(
+        remaining_minutes: i32,
+        current_flow: i32,
+        opened_valves_bits: u64,
+        position: usize,
+        position_ele: usize,
+        mut visited_since_valve: u64,
+        mut visited_since_valve_ele: u64,
+        flows: &Vec<i32>,
+        targets: &Vec<Vec<usize>>,
+        number_valves: u32,
+    ) -> i32 {
+        if number_valves == opened_valves_bits.count_ones() {
+            println!("all valves reachable!");
+            return remaining_minutes * current_flow;
+        }
+
+        if remaining_minutes == 0 {
+            return 0;
+        }
+
+        if position == position_ele {
+            visited_since_valve |= visited_since_valve_ele;
+            visited_since_valve_ele = visited_since_valve;
+        }
+
+        let mut result = -1;
+        if (opened_valves_bits & (1 << position)) == 0 && 1 <= flows[position] {
+            if position != position_ele
+                && (opened_valves_bits & (1 << position_ele)) == 0
+                && 1 <= flows[position_ele]
+            {
+                result = result.max(
+                    current_flow
+                        + score(
+                            remaining_minutes - 1,
+                            current_flow + flows[position] + flows[position_ele],
+                            opened_valves_bits | (1 << position) | (1 << position_ele),
+                            position,
+                            position_ele,
+                            0,
+                            0,
+                            flows,
+                            targets,
+                            number_valves,
+                        ),
+                );
+            }
+
+            for tgs in &targets[position_ele] {
+                if visited_since_valve_ele & (1 << *tgs) != 0 {
+                    continue;
+                }
+                result = result.max(
+                    current_flow
+                        + score(
+                            remaining_minutes - 1,
+                            current_flow + flows[position],
+                            opened_valves_bits | (1 << position),
+                            position,
+                            *tgs,
+                            0,
+                            visited_since_valve_ele | (1 << *tgs),
+                            flows,
+                            targets,
+                            number_valves,
+                        ),
+                )
+            }
+        }
+
+        if (opened_valves_bits & (1 << position_ele)) == 0 && 1 <= flows[position_ele] {
+            for tgs in &targets[position] {
+                if visited_since_valve & (1 << *tgs) != 0 {
+                    continue;
+                }
+                result = result.max(
+                    current_flow
+                        + score(
+                            remaining_minutes - 1,
+                            current_flow + flows[position_ele],
+                            opened_valves_bits | (1 << position_ele),
+                            *tgs,
+                            position_ele,
+                            visited_since_valve | (1 << *tgs),
+                            0,
+                            flows,
+                            targets,
+                            number_valves,
+                        ),
+                )
+            }
+        }
+
+        for tgs in &targets[position] {
+            if visited_since_valve & (1 << *tgs) != 0 {
+                continue;
+            }
+
+            for tgs_ele in &targets[position_ele] {
+                if visited_since_valve_ele & (1 << *tgs_ele) != 0 {
+                    continue;
+                }
+
+                result = result.max(
+                    current_flow
+                        + score(
+                            remaining_minutes - 1,
+                            current_flow,
+                            opened_valves_bits,
+                            *tgs,
+                            *tgs_ele,
+                            visited_since_valve | (1 << *tgs),
+                            visited_since_valve_ele | (1 << *tgs_ele),
+                            flows,
+                            targets,
+                            number_valves,
+                        ),
+                )
+            }
+        }
+        result
+    }
+    score(
+        26,
+        0,
+        0,
+        start_id,
+        start_id,
+        1 << start_id,
+        1 << start_id,
+        &flows,
+        &targets,
+        number_valves as u32,
+    )
+    .to_string()
 }
-
 fn do_17s() -> String {
     // let lines = read_lines("./res/17");
 

@@ -4,6 +4,8 @@ use std::{
     time::Instant,
 };
 
+use rayon::prelude::*;
+
 fn main() {
     fn print_measured<Func>(name: &str, exercise: Func)
     where
@@ -15,47 +17,47 @@ fn main() {
         println!("{}: {} [{:.2?}]", name, str, duration);
     }
 
-    print_measured("1s", do_1s);
-    print_measured("1g", do_1g);
+    // print_measured("1s", do_1s);
+    // print_measured("1g", do_1g);
 
-    print_measured("2s", do_2s);
-    print_measured("2g", do_2g);
+    // print_measured("2s", do_2s);
+    // print_measured("2g", do_2g);
 
-    print_measured("3s", do_3s);
-    print_measured("3g", do_3g);
+    // print_measured("3s", do_3s);
+    // print_measured("3g", do_3g);
 
-    print_measured("4s", do_4s);
-    print_measured("4g", do_4g);
+    // print_measured("4s", do_4s);
+    // print_measured("4g", do_4g);
 
-    print_measured("5s", do_5s);
-    print_measured("5g", do_5g);
+    // print_measured("5s", do_5s);
+    // print_measured("5g", do_5g);
 
-    print_measured("6s", do_6s);
-    print_measured("6g", do_6g);
+    // print_measured("6s", do_6s);
+    // print_measured("6g", do_6g);
 
-    print_measured("7s", do_7s);
-    print_measured("7g", do_7g);
+    // print_measured("7s", do_7s);
+    // print_measured("7g", do_7g);
 
-    print_measured("8s", do_8s);
-    print_measured("8g", do_8g);
+    // print_measured("8s", do_8s);
+    // print_measured("8g", do_8g);
 
-    print_measured("9s", do_9s);
-    print_measured("9g", do_9g);
+    // print_measured("9s", do_9s);
+    // print_measured("9g", do_9g);
 
-    print_measured("10s", do_10s);
-    print_measured("10g", do_10g);
+    // print_measured("10s", do_10s);
+    // print_measured("10g", do_10g);
 
-    print_measured("11s", do_11s);
-    print_measured("11g", do_11g);
+    // print_measured("11s", do_11s);
+    // print_measured("11g", do_11g);
 
-    print_measured("12s", do_12s);
-    print_measured("12g", do_12g);
+    // print_measured("12s", do_12s);
+    // print_measured("12g", do_12g);
 
-    print_measured("13s", do_13s);
-    print_measured("13g", do_13g);
+    // print_measured("13s", do_13s);
+    // print_measured("13g", do_13g);
 
-    print_measured("14s", do_14s);
-    print_measured("14g", do_14g);
+    // print_measured("14s", do_14s);
+    // print_measured("14g", do_14g);
 
     // print_measured("15s", do_15s);
     // print_measured("15g", do_15g);
@@ -1165,7 +1167,7 @@ fn do_15g() -> String {
         })
         .collect();
 
-    for y in 0..(4000001) {
+    for y in 0..4000001 {
         let mut excluded = Vec::new();
         excluded.reserve(data.len());
 
@@ -1308,6 +1310,14 @@ fn do_16g() -> String {
         untranslated_targets.push(targets);
     }
 
+    let mut valve_id_to_id = Vec::new();
+
+    for (i, fl) in flows.iter().enumerate() {
+        if 1 <= *fl {
+            valve_id_to_id.push(i);
+        }
+    }
+
     let start_id = translations["AA"];
 
     let targets: Vec<Vec<usize>> = untranslated_targets
@@ -1315,7 +1325,7 @@ fn do_16g() -> String {
         .map(|tgts| tgts.iter().map(|tg| translations[tg]).collect())
         .collect();
 
-    let number_valves = flows.iter().filter(|flow| 1 <= **flow).count();
+    // let number_valves = flows.iter().filter(|flow| 1 <= **flow).count();
 
     fn visited(targets: &Vec<Vec<usize>>, mut already_there: u64, position: usize) -> u64 {
         already_there |= 1 << position;
@@ -1340,20 +1350,20 @@ fn do_16g() -> String {
 
     println!("in total {}", already_there.count_ones());
 
+    #[allow(clippy::too_many_arguments)]
     fn score(
         remaining_minutes: i32,
         current_flow: i32,
         opened_valves_bits: u64,
         position: usize,
-        position_ele: usize,
         mut visited_since_valve: u64,
-        mut visited_since_valve_ele: u64,
         flows: &Vec<i32>,
         targets: &Vec<Vec<usize>>,
-        number_valves: u32,
+        allowed_valves_bit: u64,
     ) -> i32 {
-        if number_valves == opened_valves_bits.count_ones() {
-            println!("all valves reachable!");
+        visited_since_valve |= 1 << position;
+
+        if opened_valves_bits == allowed_valves_bit {
             return remaining_minutes * current_flow;
         }
 
@@ -1361,121 +1371,68 @@ fn do_16g() -> String {
             return 0;
         }
 
-        if position == position_ele {
-            visited_since_valve |= visited_since_valve_ele;
-            visited_since_valve_ele = visited_since_valve;
-        }
-
         let mut result = -1;
-        if (opened_valves_bits & (1 << position)) == 0 && 1 <= flows[position] {
-            if position != position_ele
-                && (opened_valves_bits & (1 << position_ele)) == 0
-                && 1 <= flows[position_ele]
-            {
-                result = result.max(
-                    current_flow
-                        + score(
-                            remaining_minutes - 1,
-                            current_flow + flows[position] + flows[position_ele],
-                            opened_valves_bits | (1 << position) | (1 << position_ele),
-                            position,
-                            position_ele,
-                            0,
-                            0,
-                            flows,
-                            targets,
-                            number_valves,
-                        ),
-                );
-            }
-
-            for tgs in &targets[position_ele] {
-                if visited_since_valve_ele & (1 << *tgs) != 0 {
-                    continue;
-                }
-                result = result.max(
-                    current_flow
-                        + score(
-                            remaining_minutes - 1,
-                            current_flow + flows[position],
-                            opened_valves_bits | (1 << position),
-                            position,
-                            *tgs,
-                            0,
-                            visited_since_valve_ele | (1 << *tgs),
-                            flows,
-                            targets,
-                            number_valves,
-                        ),
-                )
-            }
-        }
-
-        if (opened_valves_bits & (1 << position_ele)) == 0 && 1 <= flows[position_ele] {
-            for tgs in &targets[position] {
-                if visited_since_valve & (1 << *tgs) != 0 {
-                    continue;
-                }
-                result = result.max(
-                    current_flow
-                        + score(
-                            remaining_minutes - 1,
-                            current_flow + flows[position_ele],
-                            opened_valves_bits | (1 << position_ele),
-                            *tgs,
-                            position_ele,
-                            visited_since_valve | (1 << *tgs),
-                            0,
-                            flows,
-                            targets,
-                            number_valves,
-                        ),
-                )
-            }
+        let bit = 1 << position;
+        if (allowed_valves_bit & bit) != 0 && (opened_valves_bits & bit) == 0 {
+            result = result.max(
+                current_flow
+                    + score(
+                        remaining_minutes - 1,
+                        current_flow + flows[position],
+                        opened_valves_bits | bit,
+                        position,
+                        0,
+                        flows,
+                        targets,
+                        allowed_valves_bit,
+                    ),
+            );
         }
 
         for tgs in &targets[position] {
             if visited_since_valve & (1 << *tgs) != 0 {
                 continue;
             }
-
-            for tgs_ele in &targets[position_ele] {
-                if visited_since_valve_ele & (1 << *tgs_ele) != 0 {
-                    continue;
-                }
-
-                result = result.max(
-                    current_flow
-                        + score(
-                            remaining_minutes - 1,
-                            current_flow,
-                            opened_valves_bits,
-                            *tgs,
-                            *tgs_ele,
-                            visited_since_valve | (1 << *tgs),
-                            visited_since_valve_ele | (1 << *tgs_ele),
-                            flows,
-                            targets,
-                            number_valves,
-                        ),
-                )
-            }
+            result = result.max(
+                current_flow
+                    + score(
+                        remaining_minutes - 1,
+                        current_flow,
+                        opened_valves_bits,
+                        *tgs,
+                        visited_since_valve,
+                        flows,
+                        targets,
+                        allowed_valves_bit,
+                    ),
+            )
         }
+
         result
     }
-    score(
-        26,
-        0,
-        0,
-        start_id,
-        start_id,
-        1 << start_id,
-        1 << start_id,
-        &flows,
-        &targets,
-        number_valves as u32,
-    )
-    .to_string()
+
+    let maxx = 2_u32.pow(valve_id_to_id.len() as u32 + 1);
+
+    let par_iter = (0..maxx).into_par_iter().map(|i| {
+        println!("lets do {} out of {}", i, maxx);
+
+        let mut bits_p = 0;
+        let mut bits_e = 0;
+        for (j, item) in valve_id_to_id.iter().enumerate() {
+            if i & (1 << j) == 0 {
+                bits_p |= 1 << item;
+            } else {
+                bits_e |= 1 << item;
+            }
+        }
+
+        score(26, 0, 0, start_id, 0, &flows, &targets, bits_p)
+            + score(26, 0, 0, start_id, 0, &flows, &targets, bits_e)
+    });
+
+    let result = par_iter.max().unwrap();
+
+    result.to_string()
 }
 fn do_17s() -> String {
     // let lines = read_lines("./res/17");

@@ -63,7 +63,7 @@ fn main() {
     // print_measured("15g", do_15g);
 
     // print_measured("16s", do_16s);
-    print_measured("16g", do_16g);
+    // print_measured("16g", do_16g);
 
     print_measured("17s", do_17s);
     print_measured("17g", do_17g);
@@ -1435,15 +1435,206 @@ fn do_16g() -> String {
     result.to_string()
 }
 fn do_17s() -> String {
-    // let lines = read_lines("./res/17");
+    let lines_vec = read_lines("./res/17")
+        .next()
+        .unwrap()
+        .chars()
+        .collect::<Vec<char>>();
 
-    "TODO".to_owned()
+    let mut line = lines_vec.iter().cycle();
+
+    let shapes_arr = [
+        (vec![(3, 2), (3, 3), (3, 4), (3, 5)], 3),
+        (vec![(3, 3), (4, 2), (4, 3), (4, 4), (5, 3)], 5),
+        (vec![(3, 2), (3, 3), (3, 4), (4, 4), (5, 4)], 5),
+        (vec![(3, 2), (4, 2), (5, 2), (6, 2)], 6),
+        (vec![(3, 2), (4, 2), (4, 3), (3, 3)], 4),
+    ];
+
+    let mut shapes = shapes_arr.iter().cycle();
+
+    const HEIGHT: usize = (13 * 2022) / 5 + 1 + 3 + 4;
+    const WIDTH: usize = 7;
+
+    let mut area = [[false; WIDTH]; HEIGHT];
+
+    let mut height_tower = 0;
+
+    'outer: for _ in 0..2022 {
+        let (mut shape, mut heighest_x) = shapes.next().unwrap().clone();
+
+        for (x, _) in &mut shape {
+            *x += height_tower;
+        }
+
+        heighest_x += height_tower;
+
+        loop {
+            let dy: i32 = match line.next().unwrap() {
+                '<' => -1,
+                '>' => 1,
+                _ => unreachable!(),
+            };
+
+            if shape.iter().all(|(x, y)| {
+                0 <= y + dy && y + dy < WIDTH as i32 && !area[*x as usize][(y + dy) as usize]
+            }) {
+                for (_, y) in &mut shape {
+                    *y += dy;
+                }
+            }
+
+            if shape
+                .iter()
+                .all(|(x, y)| 1 <= *x && !area[(x - 1) as usize][*y as usize])
+            {
+                for (x, _) in &mut shape {
+                    *x -= 1;
+                }
+                heighest_x -= 1;
+            } else {
+                for (x, y) in &shape {
+                    area[*x as usize][*y as usize] = true;
+                }
+
+                height_tower = height_tower.max(heighest_x + 1);
+
+                continue 'outer;
+            }
+        }
+    }
+
+    height_tower.to_string()
 }
 
 fn do_17g() -> String {
-    // let lines = read_lines("./res/17");
+    let lines_vec = read_lines("./res/17")
+        .next()
+        .unwrap()
+        .chars()
+        .collect::<Vec<char>>();
 
-    "TODO".to_owned()
+    let cycle_length = lines_vec.len();
+
+    let mut line = lines_vec.iter().cycle();
+
+    let shapes_arr = [
+        (vec![(3, 2), (3, 3), (3, 4), (3, 5)], 3),
+        (vec![(3, 3), (4, 2), (4, 3), (4, 4), (5, 3)], 5),
+        (vec![(3, 2), (3, 3), (3, 4), (4, 4), (5, 4)], 5),
+        (vec![(3, 2), (4, 2), (5, 2), (6, 2)], 6),
+        (vec![(3, 2), (4, 2), (4, 3), (3, 3)], 4),
+    ];
+
+    let shapes_len = shapes_arr.len();
+
+    let mut shapes = shapes_arr.iter().cycle();
+
+    const HEIGHT: usize = 200000;
+    const WIDTH: usize = 7;
+
+    let mut area = [[false; WIDTH]; HEIGHT];
+
+    let mut height_tower: u64 = 0;
+
+    let mut hidden_height = 0;
+
+    let mut start = Instant::now();
+
+    let mut shape_id = 0;
+    let mut cycle_id = 0;
+
+    let mut last_height = height_tower;
+    let mut last_i = 0;
+
+    let mut i: u64 = 0;
+
+    'outer: loop {
+        if i == 1000000000000_u64 {
+            break;
+        }
+        if i % 10000000 == 0 {
+            let duration = start.elapsed();
+            println!("{:2}% [{:.2?}]", i as f64 / 10000000000_f64, duration);
+            start = Instant::now();
+        }
+
+        let (mut shape, mut heighest_x) = shapes.next().unwrap().clone();
+
+        shape_id += 1;
+        shape_id %= shapes_len;
+
+        if shape_id == 0 && cycle_id == 1 {
+            if height_tower - last_height == 2737 && i - last_i == 1760 {
+                println!("Let's go!!!!!!! [i = {}]", i);
+                let skip = (1000000000000_u64 - i - 1) / 1760;
+                println!("Skipping {} cycles.", skip);
+                i += skip * 1760;
+                println!("New i is {}.", i);
+                height_tower += skip * 2737;
+                hidden_height += skip * 2737;
+            }
+
+            last_height = height_tower;
+            last_i = i;
+        }
+
+        for (x, _) in &mut shape {
+            *x += height_tower - hidden_height;
+        }
+
+        heighest_x += height_tower - hidden_height;
+
+        loop {
+            let dy: i32 = match line.next().unwrap() {
+                '<' => -1,
+                '>' => 1,
+                _ => unreachable!(),
+            };
+
+            cycle_id += 1;
+            cycle_id %= cycle_length;
+
+            if shape.iter().all(|(x, y)| {
+                0 <= y + dy && y + dy < WIDTH as i32 && !area[*x as usize][(y + dy) as usize]
+            }) {
+                for (_, y) in &mut shape {
+                    *y += dy;
+                }
+            }
+
+            if shape
+                .iter()
+                .all(|(x, y)| 1 <= *x && !area[(x - 1) as usize][*y as usize])
+            {
+                for (x, _) in &mut shape {
+                    *x -= 1;
+                }
+                heighest_x -= 1;
+            } else {
+                for (x, y) in &shape {
+                    area[*x as usize][*y as usize] = true;
+                }
+
+                height_tower = height_tower.max(heighest_x + 1 + hidden_height);
+
+                if (HEIGHT as u64 + hidden_height) - height_tower < 10 {
+                    hidden_height += HEIGHT as u64 / 2;
+                    for x in 0..(HEIGHT / 2) {
+                        area[x] = area[x + HEIGHT / 2];
+                    }
+                    for row in area.iter_mut().skip(HEIGHT / 2) {
+                        row.fill(false);
+                    }
+                }
+
+                i += 1;
+                continue 'outer;
+            }
+        }
+    }
+
+    height_tower.to_string()
 }
 
 fn do_18s() -> String {

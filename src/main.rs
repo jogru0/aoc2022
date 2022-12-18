@@ -62,8 +62,8 @@ fn main() {
     // print_measured("15s", do_15s);
     // print_measured("15g", do_15g);
 
-    // print_measured("16s", do_16s);
-    // print_measured("16g", do_16g);
+    print_measured("16s", do_16s);
+    print_measured("16g", do_16g);
 
     print_measured("17s", do_17s);
     print_measured("17g", do_17g);
@@ -90,6 +90,7 @@ fn main() {
     print_measured("24g", do_24g);
 }
 
+#[allow(dead_code)]
 fn do_6s() -> String {
     let mut lines = read_lines("./res/6");
 
@@ -110,6 +111,7 @@ fn do_6s() -> String {
     unreachable!()
 }
 
+#[allow(dead_code)]
 fn do_6g() -> String {
     let mut lines = read_lines("./res/6");
 
@@ -141,6 +143,7 @@ fn calculate_total_size(
     }
 }
 
+#[allow(dead_code)]
 fn do_7s() -> String {
     let lines = read_lines("./res/7");
 
@@ -188,6 +191,7 @@ fn do_7s() -> String {
         .to_string()
 }
 
+#[allow(dead_code)]
 fn do_7g() -> String {
     let lines = read_lines("./res/7");
 
@@ -238,6 +242,7 @@ fn do_7g() -> String {
     best_size.to_string()
 }
 
+#[allow(dead_code)]
 fn do_8s() -> String {
     let lines = read_lines("./res/8");
 
@@ -301,6 +306,7 @@ fn do_8s() -> String {
     number_visible.to_string()
 }
 
+#[allow(dead_code)]
 fn do_8g() -> String {
     let lines = read_lines("./res/8");
 
@@ -354,6 +360,7 @@ fn do_8g() -> String {
     best_score.to_string()
 }
 
+#[allow(dead_code)]
 fn do_9s() -> String {
     let lines = read_lines("./res/9");
 
@@ -408,6 +415,7 @@ fn trace_knot(hx: i32, hy: i32, tx: &mut i32, ty: &mut i32) {
     }
 }
 
+#[allow(dead_code)]
 fn do_9g() -> String {
     let lines = read_lines("./res/9");
 
@@ -440,6 +448,7 @@ fn do_9g() -> String {
     places.len().to_string()
 }
 
+#[allow(dead_code)]
 fn do_10s() -> String {
     let mut lines = read_lines("./res/10");
 
@@ -478,6 +487,7 @@ fn do_10s() -> String {
     }
 }
 
+#[allow(dead_code)]
 fn do_10g() -> String {
     let mut lines = read_lines("./res/10");
 
@@ -522,6 +532,7 @@ fn do_10g() -> String {
     }
 }
 
+#[allow(dead_code)]
 fn do_11s() -> String {
     // let lines = read_lines("./res/11");
 
@@ -579,6 +590,7 @@ fn do_11s() -> String {
     (inspecitions[6] * inspecitions[7]).to_string()
 }
 
+#[allow(dead_code)]
 fn do_11g() -> String {
     // let lines = read_lines("./res/11");
 
@@ -659,6 +671,7 @@ impl Ord for Event {
     }
 }
 
+#[allow(dead_code)]
 fn do_12s() -> String {
     let lines: Vec<String> = read_lines("./res/12").collect();
 
@@ -741,6 +754,7 @@ fn do_12s() -> String {
     }
 }
 
+#[allow(dead_code)]
 fn do_12g() -> String {
     let lines: Vec<String> = read_lines("./res/12").collect();
 
@@ -956,6 +970,7 @@ fn compare_signals(lefto: &str, righto: &str) -> Ordering {
     }
 }
 
+#[allow(dead_code)]
 fn do_13s() -> String {
     let mut lines = read_lines("./res/13");
 
@@ -979,6 +994,7 @@ fn do_13s() -> String {
     }
 }
 
+#[allow(dead_code)]
 fn do_13g() -> String {
     let mut lines: Vec<String> = read_lines("./res/13").filter(|st| !st.is_empty()).collect();
     lines.push("[[2]]".to_owned());
@@ -991,6 +1007,7 @@ fn do_13g() -> String {
         .to_string()
 }
 
+#[allow(dead_code)]
 fn do_14s() -> String {
     let lines = read_lines("./res/14");
 
@@ -1047,6 +1064,7 @@ fn do_14s() -> String {
     }
 }
 
+#[allow(dead_code)]
 fn do_14g() -> String {
     let lines = read_lines("./res/14");
 
@@ -1111,6 +1129,7 @@ fn do_14g() -> String {
     }
 }
 
+#[allow(dead_code)]
 fn do_15s() -> String {
     let lines: Vec<String> = read_lines("./res/15").collect();
 
@@ -1149,6 +1168,7 @@ fn do_15s() -> String {
     excluded.len().to_string()
 }
 
+#[allow(dead_code)]
 fn do_15g() -> String {
     let lines = read_lines("./res/15");
 
@@ -1201,6 +1221,7 @@ fn do_15g() -> String {
     panic!();
 }
 
+#[allow(dead_code)]
 fn do_16s() -> String {
     let lines = read_lines("./res/16");
 
@@ -1285,6 +1306,7 @@ fn do_16s() -> String {
     score(30, 0, 0, start_id, &flows, &targets, start_id).to_string()
 }
 
+#[allow(dead_code)]
 fn do_16g() -> String {
     let lines = read_lines("./res/16");
 
@@ -1434,6 +1456,7 @@ fn do_16g() -> String {
 
     result.to_string()
 }
+#[allow(dead_code)]
 fn do_17s() -> String {
     let lines_vec = read_lines("./res/17")
         .next()
@@ -1507,6 +1530,7 @@ fn do_17s() -> String {
     height_tower.to_string()
 }
 
+#[allow(dead_code)]
 fn do_17g() -> String {
     let lines_vec = read_lines("./res/17")
         .next()
@@ -1637,90 +1661,105 @@ fn do_17g() -> String {
     height_tower.to_string()
 }
 
+#[allow(dead_code)]
 fn do_18s() -> String {
     // let lines = read_lines("./res/18");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_18g() -> String {
     // let lines = read_lines("./res/18");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_19s() -> String {
     // let lines = read_lines("./res/19");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_19g() -> String {
     // let lines = read_lines("./res/19");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_20s() -> String {
     // let lines = read_lines("./res/20");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_20g() -> String {
     // let lines = read_lines("./res/20");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_21s() -> String {
     // let lines = read_lines("./res/21");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_21g() -> String {
     // let lines = read_lines("./res/21");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_22s() -> String {
     // let lines = read_lines("./res/22");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_22g() -> String {
     // let lines = read_lines("./res/22");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_23s() -> String {
     // let lines = read_lines("./res/23");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_23g() -> String {
     // let lines = read_lines("./res/23");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_24s() -> String {
     // let lines = read_lines("./res/24");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_24g() -> String {
     // let lines = read_lines("./res/24");
 
     "TODO".to_owned()
 }
 
+#[allow(dead_code)]
 fn do_5g() -> String {
     let mut lines = read_lines("./res/5");
 
@@ -1761,6 +1800,7 @@ fn do_5g() -> String {
     config.iter().map(|stack| stack.last().unwrap()).collect()
 }
 
+#[allow(dead_code)]
 fn do_5s() -> String {
     let mut lines = read_lines("./res/5");
 
@@ -1801,6 +1841,7 @@ fn char_value(ch: char) -> i32 {
     (ch as i32) - ('A' as i32) + char_value('z') + 1
 }
 
+#[allow(dead_code)]
 fn do_4s() -> String {
     let lines = read_lines("./res/4");
 
@@ -1825,6 +1866,7 @@ fn do_4s() -> String {
     sum.to_string()
 }
 
+#[allow(dead_code)]
 fn do_4g() -> String {
     let lines = read_lines("./res/4");
 
@@ -1849,6 +1891,7 @@ fn do_4g() -> String {
     sum.to_string()
 }
 
+#[allow(dead_code)]
 fn do_3s() -> String {
     let lines = read_lines("./res/3");
 
@@ -1868,6 +1911,7 @@ fn do_3s() -> String {
     sum.to_string()
 }
 
+#[allow(dead_code)]
 fn do_3g() -> String {
     let mut lines = read_lines("./res/3");
 
@@ -1893,6 +1937,7 @@ fn do_3g() -> String {
     }
 }
 
+#[allow(dead_code)]
 fn do_1s() -> String {
     let lines = read_lines("./res/1");
 
@@ -1909,6 +1954,7 @@ fn do_1s() -> String {
     (*sums.iter().max().unwrap()).to_string()
 }
 
+#[allow(dead_code)]
 fn do_1g() -> String {
     let lines = read_lines("./res/1");
 
@@ -1927,6 +1973,7 @@ fn do_1g() -> String {
     (sums[sums.len() - 1] + sums[sums.len() - 2] + sums[sums.len() - 3]).to_string()
 }
 
+#[allow(dead_code)]
 fn do_2s() -> String {
     let lines = read_lines("./res/2");
 
@@ -1959,6 +2006,7 @@ fn do_2s() -> String {
     points.to_string()
 }
 
+#[allow(dead_code)]
 fn do_2g() -> String {
     let lines = read_lines("./res/2");
 

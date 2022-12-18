@@ -62,11 +62,11 @@ fn main() {
     // print_measured("15s", do_15s);
     // print_measured("15g", do_15g);
 
-    print_measured("16s", do_16s);
-    print_measured("16g", do_16g);
+    // print_measured("16s", do_16s);
+    // print_measured("16g", do_16g);
 
-    print_measured("17s", do_17s);
-    print_measured("17g", do_17g);
+    // print_measured("17s", do_17s);
+    // print_measured("17g", do_17g);
 
     print_measured("18s", do_18s);
     print_measured("18g", do_18g);
@@ -1665,18 +1665,168 @@ fn do_17g() -> String {
 fn do_18s() -> String {
     let lines = read_lines("./res/18");
 
+    let mut min_x = 1000;
+    let mut max_x = 0;
+    let mut min_y = 1000;
+    let mut max_y = 0;
+    let mut min_z = 1000;
+    let mut max_z = 0;
+
+    let mut space = [[[false; 24]; 24]; 24];
+
     for line in lines {
-        let (x, y, z) = line.split(',').map(|str| str.parse::<usize>().unwrap());
+        let mut xyz = line.split(',').map(|str| str.parse::<usize>().unwrap());
+        let x = xyz.next().unwrap();
+        let y = xyz.next().unwrap();
+        let z = xyz.next().unwrap();
+
+        min_x = min_x.min(x);
+        max_x = max_x.max(x);
+        min_y = min_y.min(y);
+        max_y = max_y.max(y);
+        min_z = min_z.min(z);
+        max_z = max_z.max(z);
+
+        space[x + 1][y + 1][z + 1] = true;
     }
 
-    "TODO".to_owned()
+    println!("{} - {}", min_x, max_x);
+    println!("{} - {}", min_y, max_y);
+    println!("{} - {}", min_z, max_z);
+
+    let mut result = 0;
+
+    for x in 1..23 {
+        for y in 1..23 {
+            for z in 1..23 {
+                if space[x][y][z] {
+                    if !space[x - 1][y][z] {
+                        result += 1;
+                    }
+                    if !space[x + 1][y][z] {
+                        result += 1;
+                    }
+                    if !space[x][y - 1][z] {
+                        result += 1;
+                    }
+                    if !space[x][y + 1][z] {
+                        result += 1;
+                    }
+                    if !space[x][y][z - 1] {
+                        result += 1;
+                    }
+                    if !space[x][y][z + 1] {
+                        result += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    result.to_string()
 }
 
 #[allow(dead_code)]
 fn do_18g() -> String {
-    // let lines = read_lines("./res/18");
+    let lines = read_lines("./res/18");
 
-    "TODO".to_owned()
+    let mut min_x = 1000;
+    let mut max_x = 0;
+    let mut min_y = 1000;
+    let mut max_y = 0;
+    let mut min_z = 1000;
+    let mut max_z = 0;
+
+    let mut space = [[[false; 24]; 24]; 24];
+    let mut air = [[[false; 24]; 24]; 24];
+
+    for line in lines {
+        let mut xyz = line.split(',').map(|str| str.parse::<usize>().unwrap());
+        let x = xyz.next().unwrap();
+        let y = xyz.next().unwrap();
+        let z = xyz.next().unwrap();
+
+        min_x = min_x.min(x);
+        max_x = max_x.max(x);
+        min_y = min_y.min(y);
+        max_y = max_y.max(y);
+        min_z = min_z.min(z);
+        max_z = max_z.max(z);
+
+        space[x + 1][y + 1][z + 1] = true;
+    }
+
+    println!("{} - {}", min_x, max_x);
+    println!("{} - {}", min_y, max_y);
+    println!("{} - {}", min_z, max_z);
+
+    let mut to_do = vec![(0, 0, 0)];
+    air[0][0][0] = true;
+
+    while !to_do.is_empty() {
+        let (x, y, z) = to_do.pop().unwrap();
+        air[x][y][z] = true;
+
+        if 1 <= x && !space[x - 1][y][z] && !air[x - 1][y][z] {
+            to_do.push((x - 1, y, z));
+        }
+        if x < 23 && !space[x + 1][y][z] && !air[x + 1][y][z] {
+            to_do.push((x + 1, y, z));
+        }
+        if 1 <= y && !space[x][y - 1][z] && !air[x][y - 1][z] {
+            to_do.push((x, y - 1, z));
+        }
+        if y < 23 && !space[x][y + 1][z] && !air[x][y + 1][z] {
+            to_do.push((x, y + 1, z));
+        }
+        if 1 <= z && !space[x][y][z - 1] && !air[x][y][z - 1] {
+            to_do.push((x, y, z - 1));
+        }
+        if z < 23 && !space[x][y][z + 1] && !air[x][y][z + 1] {
+            to_do.push((x, y, z + 1));
+        }
+    }
+
+    for x in 0..24 {
+        for y in 0..24 {
+            for z in 0..24 {
+                if !air[x][y][z] {
+                    space[x][y][z] = true;
+                }
+            }
+        }
+    }
+
+    let mut result = 0;
+
+    for x in 1..23 {
+        for y in 1..23 {
+            for z in 1..23 {
+                if space[x][y][z] {
+                    if !space[x - 1][y][z] {
+                        result += 1;
+                    }
+                    if !space[x + 1][y][z] {
+                        result += 1;
+                    }
+                    if !space[x][y - 1][z] {
+                        result += 1;
+                    }
+                    if !space[x][y + 1][z] {
+                        result += 1;
+                    }
+                    if !space[x][y][z - 1] {
+                        result += 1;
+                    }
+                    if !space[x][y][z + 1] {
+                        result += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    result.to_string()
 }
 
 #[allow(dead_code)]

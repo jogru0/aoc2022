@@ -1638,7 +1638,11 @@ fn do_17g() -> String {
 }
 
 fn do_18s() -> String {
-    // let lines = read_lines("./res/18");
+    let lines = read_lines("./res/18");
+
+    for line in lines {
+        let (x, y, z) = line.split(',').map(|str| str.parse::<usize>().unwrap());
+    }
 
     "TODO".to_owned()
 }

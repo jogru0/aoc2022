@@ -68,10 +68,10 @@ fn main() {
     // print_measured("17s", do_17s);
     // print_measured("17g", do_17g);
 
-    print_measured("18s", do_18s);
-    print_measured("18g", do_18g);
+    // print_measured("18s", do_18s);
+    // print_measured("18g", do_18g);
 
-    print_measured("19s", do_19s);
+    // print_measured("19s", do_19s);
     print_measured("19g", do_19g);
 
     print_measured("20s", do_20s);
@@ -1831,16 +1831,375 @@ fn do_18g() -> String {
 
 #[allow(dead_code)]
 fn do_19s() -> String {
-    // let lines = read_lines("./res/19");
+    let lines: Vec<String> = read_lines("./res/19").collect();
 
-    "TODO".to_owned()
+    let results = lines.into_par_iter().enumerate().map(|(n, line)| {
+        println!("Doing iteration {}/30", n);
+
+        let split = line.split(' ').collect::<Vec<&str>>();
+
+        let rr_costs = (split[6].parse::<i32>().unwrap(), 0, 0, 0);
+        let lr_costs = (split[12].parse::<i32>().unwrap(), 0, 0, 0);
+        let br_costs = (
+            split[18].parse::<i32>().unwrap(),
+            split[21].parse::<i32>().unwrap(),
+            0,
+            0,
+        );
+        let er_costs = (
+            split[27].parse::<i32>().unwrap(),
+            0,
+            split[30].parse::<i32>().unwrap(),
+            0,
+        );
+
+        let mut cache = HashMap::new();
+
+        let mut to_explore = vec![((1, 0, 0), (0, 0, 0), 24)];
+
+        while !to_explore.is_empty() {
+            let (robots, resources, time) = to_explore.last().unwrap();
+
+            let mut result = 0;
+
+            if 1 <= *time {
+                let resources_next = (
+                    resources.0 + robots.0,
+                    resources.1 + robots.1,
+                    resources.2 + robots.2,
+                );
+                match cache.get(&(
+                    robots.0,
+                    robots.1,
+                    robots.2,
+                    resources_next.0,
+                    resources_next.1,
+                    resources_next.2,
+                    time - 1,
+                )) {
+                    Some(res) => result = result.max(*res),
+                    None => {
+                        to_explore.push((*robots, resources_next, time - 1));
+                        continue;
+                    }
+                }
+
+                if rr_costs.0 <= resources.0 {
+                    let res_next = (
+                        resources_next.0 - rr_costs.0,
+                        resources_next.1,
+                        resources_next.2,
+                    );
+
+                    let rob_next = (robots.0 + 1, robots.1, robots.2);
+                    match cache.get(&(
+                        rob_next.0,
+                        rob_next.1,
+                        rob_next.2,
+                        res_next.0,
+                        res_next.1,
+                        res_next.2,
+                        time - 1,
+                    )) {
+                        Some(res) => result = result.max(*res),
+                        None => {
+                            to_explore.push((rob_next, res_next, time - 1));
+                            continue;
+                        }
+                    }
+                }
+
+                if lr_costs.0 <= resources.0 {
+                    let res_next = (
+                        resources_next.0 - lr_costs.0,
+                        resources_next.1,
+                        resources_next.2,
+                    );
+
+                    let rob_next = (robots.0, robots.1 + 1, robots.2);
+                    match cache.get(&(
+                        rob_next.0,
+                        rob_next.1,
+                        rob_next.2,
+                        res_next.0,
+                        res_next.1,
+                        res_next.2,
+                        time - 1,
+                    )) {
+                        Some(res) => result = result.max(*res),
+                        None => {
+                            to_explore.push((rob_next, res_next, time - 1));
+                            continue;
+                        }
+                    }
+                }
+
+                if br_costs.0 <= resources.0 && br_costs.1 <= resources.1 {
+                    let res_next = (
+                        resources_next.0 - br_costs.0,
+                        resources_next.1 - br_costs.1,
+                        resources_next.2,
+                    );
+
+                    let rob_next = (robots.0, robots.1, robots.2 + 1);
+                    match cache.get(&(
+                        rob_next.0,
+                        rob_next.1,
+                        rob_next.2,
+                        res_next.0,
+                        res_next.1,
+                        res_next.2,
+                        time - 1,
+                    )) {
+                        Some(res) => result = result.max(*res),
+                        None => {
+                            to_explore.push((rob_next, res_next, time - 1));
+                            continue;
+                        }
+                    }
+                }
+
+                if er_costs.0 <= resources.0 && er_costs.2 <= resources.2 {
+                    let res_next = (
+                        resources_next.0 - er_costs.0,
+                        resources_next.1,
+                        resources_next.2 - er_costs.2,
+                    );
+
+                    let rob_next = (robots.0, robots.1, robots.2);
+
+                    match cache.get(&(
+                        rob_next.0,
+                        rob_next.1,
+                        rob_next.2,
+                        res_next.0,
+                        res_next.1,
+                        res_next.2,
+                        time - 1,
+                    )) {
+                        Some(res) => result = result.max(*res + time - 1),
+                        None => {
+                            to_explore.push((rob_next, res_next, time - 1));
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            cache.insert(
+                (
+                    robots.0,
+                    robots.1,
+                    robots.2,
+                    resources.0,
+                    resources.1,
+                    resources.2,
+                    *time,
+                ),
+                result,
+            );
+            to_explore.pop();
+        }
+
+        println!("We can get {}", cache[&(1, 0, 0, 0, 0, 0, 24)]);
+
+        (n + 1) * cache[&(1, 0, 0, 0, 0, 0, 24)]
+    });
+
+    results.sum::<usize>().to_string()
 }
 
 #[allow(dead_code)]
 fn do_19g() -> String {
-    // let lines = read_lines("./res/19");
+    let lines: Vec<String> = read_lines("./res/19").take(3).collect();
 
-    "TODO".to_owned()
+    let results = lines
+        .into_par_iter()
+        .enumerate()
+        .map(|(n, line)| {
+            println!("Doing iteration {}/3", n);
+
+            let split = line.split(' ').collect::<Vec<&str>>();
+
+            let rr_costs = (split[6].parse::<i32>().unwrap(), 0, 0, 0);
+            let lr_costs = (split[12].parse::<i32>().unwrap(), 0, 0, 0);
+            let br_costs = (
+                split[18].parse::<i32>().unwrap(),
+                split[21].parse::<i32>().unwrap(),
+                0,
+                0,
+            );
+            let er_costs = (
+                split[27].parse::<i32>().unwrap(),
+                0,
+                split[30].parse::<i32>().unwrap(),
+                0,
+            );
+
+            let mut cache = HashMap::new();
+
+            let mut to_explore = vec![((1, 0, 0), (0, 0, 0), 32)];
+
+            while !to_explore.is_empty() {
+                let (robots, resources, time) = to_explore.last().unwrap();
+
+                let mut result = 0;
+
+                if 1 <= *time {
+                    let resources_next = (
+                        resources.0 + robots.0,
+                        resources.1 + robots.1,
+                        resources.2 + robots.2,
+                    );
+
+                    let mut robot_possible = false;
+
+                    if rr_costs.0 <= resources.0 {
+                        let res_next = (
+                            resources_next.0 - rr_costs.0,
+                            resources_next.1,
+                            resources_next.2,
+                        );
+
+                        let rob_next = (robots.0 + 1, robots.1, robots.2);
+                        match cache.get(&(
+                            rob_next.0,
+                            rob_next.1,
+                            rob_next.2,
+                            res_next.0,
+                            res_next.1,
+                            res_next.2,
+                            time - 1,
+                        )) {
+                            Some(res) => result = result.max(*res),
+                            None => {
+                                to_explore.push((rob_next, res_next, time - 1));
+                                continue;
+                            }
+                        }
+                        robot_possible = true;
+                    }
+
+                    if lr_costs.0 <= resources.0 {
+                        let res_next = (
+                            resources_next.0 - lr_costs.0,
+                            resources_next.1,
+                            resources_next.2,
+                        );
+
+                        let rob_next = (robots.0, robots.1 + 1, robots.2);
+                        match cache.get(&(
+                            rob_next.0,
+                            rob_next.1,
+                            rob_next.2,
+                            res_next.0,
+                            res_next.1,
+                            res_next.2,
+                            time - 1,
+                        )) {
+                            Some(res) => result = result.max(*res),
+                            None => {
+                                to_explore.push((rob_next, res_next, time - 1));
+                                continue;
+                            }
+                        }
+                        robot_possible = true;
+                    }
+
+                    if br_costs.0 <= resources.0 && br_costs.1 <= resources.1 {
+                        let res_next = (
+                            resources_next.0 - br_costs.0,
+                            resources_next.1 - br_costs.1,
+                            resources_next.2,
+                        );
+
+                        let rob_next = (robots.0, robots.1, robots.2 + 1);
+                        match cache.get(&(
+                            rob_next.0,
+                            rob_next.1,
+                            rob_next.2,
+                            res_next.0,
+                            res_next.1,
+                            res_next.2,
+                            time - 1,
+                        )) {
+                            Some(res) => result = result.max(*res),
+                            None => {
+                                to_explore.push((rob_next, res_next, time - 1));
+                                continue;
+                            }
+                        }
+                        robot_possible = true;
+                    }
+
+                    if er_costs.0 <= resources.0 && er_costs.2 <= resources.2 {
+                        let res_next = (
+                            resources_next.0 - er_costs.0,
+                            resources_next.1,
+                            resources_next.2 - er_costs.2,
+                        );
+
+                        let rob_next = (robots.0, robots.1, robots.2);
+
+                        match cache.get(&(
+                            rob_next.0,
+                            rob_next.1,
+                            rob_next.2,
+                            res_next.0,
+                            res_next.1,
+                            res_next.2,
+                            time - 1,
+                        )) {
+                            Some(res) => result = result.max(*res + time - 1),
+                            None => {
+                                to_explore.push((rob_next, res_next, time - 1));
+                                continue;
+                            }
+                        }
+                        robot_possible = true;
+                    }
+
+                    if !robot_possible {
+                        match cache.get(&(
+                            robots.0,
+                            robots.1,
+                            robots.2,
+                            resources_next.0,
+                            resources_next.1,
+                            resources_next.2,
+                            time - 1,
+                        )) {
+                            Some(res) => result = result.max(*res),
+                            None => {
+                                to_explore.push((*robots, resources_next, time - 1));
+                                continue;
+                            }
+                        }
+                    }
+                }
+
+                cache.insert(
+                    (
+                        robots.0,
+                        robots.1,
+                        robots.2,
+                        resources.0,
+                        resources.1,
+                        resources.2,
+                        *time,
+                    ),
+                    result,
+                );
+                to_explore.pop();
+            }
+
+            println!("We can get {}", cache[&(1, 0, 0, 0, 0, 0, 32)]);
+
+            cache[&(1, 0, 0, 0, 0, 0, 32)]
+        })
+        .collect::<Vec<_>>();
+
+    (results[0] * results[1] * results[2]).to_string()
 }
 
 #[allow(dead_code)]

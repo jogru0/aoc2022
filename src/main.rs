@@ -72,10 +72,10 @@ fn main() {
     // print_measured("18g", do_18g);
 
     // print_measured("19s", do_19s);
-    print_measured("19g", do_19g);
+    // print_measured("19g", do_19g);
 
-    print_measured("20s", do_20s);
-    print_measured("20g", do_20g);
+    // print_measured("20s", do_20s);
+    // print_measured("20g", do_20g);
 
     print_measured("21s", do_21s);
     print_measured("21g", do_21g);
@@ -2204,30 +2204,244 @@ fn do_19g() -> String {
 
 #[allow(dead_code)]
 fn do_20s() -> String {
-    // let lines = read_lines("./res/20");
+    let lines = read_lines("./res/20");
 
-    "TODO".to_owned()
+    let mut shuffled_numbers: Vec<(usize, i32)> = lines
+        .map(|str| str.parse::<i32>().unwrap())
+        .enumerate()
+        .collect();
+
+    let len = shuffled_numbers.len();
+
+    for index in 0..len {
+        let old_index = shuffled_numbers
+            .iter()
+            .position(|(ind, _)| *ind == index)
+            .unwrap();
+
+        let (_, i) = shuffled_numbers[old_index];
+
+        let new_index = (old_index as i32 + i).rem_euclid(len as i32 - 1) as usize;
+
+        shuffled_numbers.remove(old_index);
+        shuffled_numbers.insert(new_index, (index, i));
+    }
+
+    let index_of_zero = shuffled_numbers.iter().position(|(_, e)| *e == 0).unwrap();
+
+    (shuffled_numbers[(index_of_zero as i32 + 1000).rem_euclid(len as i32) as usize].1
+        + shuffled_numbers[(index_of_zero as i32 + 2000).rem_euclid(len as i32) as usize].1
+        + shuffled_numbers[(index_of_zero as i32 + 3000).rem_euclid(len as i32) as usize].1)
+        .to_string()
 }
 
 #[allow(dead_code)]
 fn do_20g() -> String {
-    // let lines = read_lines("./res/20");
+    let mut shuffled_numbers: Vec<_> = read_lines("./res/20")
+        .map(|str| str.parse::<i64>().unwrap() * 811589153)
+        .enumerate()
+        .collect();
+    let len = shuffled_numbers.len();
+    for _ in 0..10 {
+        for index in 0..len {
+            let (old_index, &(_, number)) = shuffled_numbers
+                .iter()
+                .enumerate()
+                .find(|(_, (ind, _))| *ind == index)
+                .unwrap();
 
-    "TODO".to_owned()
+            let elem = shuffled_numbers.remove(old_index);
+            shuffled_numbers.insert(
+                (old_index as i64 + number).rem_euclid(len as i64 - 1) as usize,
+                elem,
+            );
+        }
+    }
+    let index_of_zero = shuffled_numbers.iter().position(|(_, e)| *e == 0).unwrap() as i64;
+    (shuffled_numbers[(index_of_zero + 1000).rem_euclid(len as i64) as usize].1
+        + shuffled_numbers[(index_of_zero + 2000).rem_euclid(len as i64) as usize].1
+        + shuffled_numbers[(index_of_zero + 3000).rem_euclid(len as i64) as usize].1)
+        .to_string()
+}
+
+#[derive(Clone)]
+enum NumberOrOperation {
+    Number(i64),
+    Operation(String, char, String),
 }
 
 #[allow(dead_code)]
 fn do_21s() -> String {
-    // let lines = read_lines("./res/21");
+    let lines = read_lines("./res/21");
 
-    "TODO".to_owned()
+    let dict: HashMap<_, _> = lines
+        .map(|line| {
+            let mut iter = line.split(' ');
+
+            let mut name = iter.next().unwrap().to_string();
+            name.pop();
+
+            let number_or_first_operant = iter.next().unwrap();
+
+            (
+                name,
+                match iter.next() {
+                    Some(operation_str) => NumberOrOperation::Operation(
+                        number_or_first_operant.to_owned(),
+                        operation_str.chars().next().unwrap(),
+                        iter.next().unwrap().to_owned(),
+                    ),
+                    None => {
+                        NumberOrOperation::Number(number_or_first_operant.parse::<i64>().unwrap())
+                    }
+                },
+            )
+        })
+        .collect();
+
+    let mut sol_dict = HashMap::new();
+    sol_dict.reserve(dict.len());
+
+    fn solve(
+        name: &str,
+        sol_dict: &mut HashMap<String, i64>,
+        dict: &HashMap<String, NumberOrOperation>,
+    ) {
+        match &dict[name] {
+            NumberOrOperation::Number(num) => {
+                sol_dict.insert(name.to_owned(), *num);
+            }
+            NumberOrOperation::Operation(l, op, r) => {
+                if !sol_dict.contains_key(l) {
+                    solve(l, sol_dict, dict);
+                }
+                if !sol_dict.contains_key(r) {
+                    solve(r, sol_dict, dict);
+                }
+                let left = sol_dict[l];
+                let right = sol_dict[r];
+
+                sol_dict.insert(
+                    name.to_owned(),
+                    match op {
+                        '+' => left + right,
+                        '-' => left - right,
+                        '*' => left * right,
+                        '/' => left / right,
+                        _ => panic!(),
+                    },
+                );
+            }
+        }
+    }
+
+    solve("root", &mut sol_dict, &dict);
+
+    sol_dict["root"].to_string()
 }
 
 #[allow(dead_code)]
 fn do_21g() -> String {
-    // let lines = read_lines("./res/21");
+    let lines = read_lines("./res/21");
 
-    "TODO".to_owned()
+    let mut dict: HashMap<_, _> = lines
+        .map(|line| {
+            let mut iter = line.split(' ');
+
+            let mut name = iter.next().unwrap().to_string();
+            name.pop();
+
+            let number_or_first_operant = iter.next().unwrap();
+
+            (
+                name,
+                match iter.next() {
+                    Some(operation_str) => NumberOrOperation::Operation(
+                        number_or_first_operant.to_owned(),
+                        operation_str.chars().next().unwrap(),
+                        iter.next().unwrap().to_owned(),
+                    ),
+                    None => {
+                        NumberOrOperation::Number(number_or_first_operant.parse::<i64>().unwrap())
+                    }
+                },
+            )
+        })
+        .collect();
+
+    let (left_root, _, right_root) =
+        if let NumberOrOperation::Operation(l, op, r) = dict["root"].clone() {
+            (l, op, r)
+        } else {
+            unreachable!()
+        };
+
+    fn solve(
+        name: &str,
+        sol_dict: &mut HashMap<String, i64>,
+        dict: &HashMap<String, NumberOrOperation>,
+    ) {
+        match &dict[name] {
+            NumberOrOperation::Number(num) => {
+                sol_dict.insert(name.to_owned(), *num);
+            }
+            NumberOrOperation::Operation(l, op, r) => {
+                if !sol_dict.contains_key(l) {
+                    solve(l, sol_dict, dict);
+                }
+                if !sol_dict.contains_key(r) {
+                    solve(r, sol_dict, dict);
+                }
+                let left = sol_dict[l];
+                let right = sol_dict[r];
+
+                sol_dict.insert(
+                    name.to_owned(),
+                    match op {
+                        '+' => left + right,
+                        '-' => left - right,
+                        '*' => left * right,
+                        '/' => left / right,
+                        _ => panic!(),
+                    },
+                );
+            }
+        }
+    }
+
+    let mut i = 1;
+
+    let mut lower = 0;
+    let mut upper = 3740214169961;
+    loop {
+        println!("upper: {}, lower: {}, i: {}", upper, lower, i);
+
+        dict.insert("humn".to_owned(), NumberOrOperation::Number(i));
+
+        let mut sol_dict = HashMap::new();
+        sol_dict.reserve(dict.len());
+
+        solve("root", &mut sol_dict, &dict);
+
+        let left = sol_dict[&left_root];
+        let right = sol_dict[&right_root];
+
+        match left.cmp(&right) {
+            Ordering::Less => upper = i,
+            Ordering::Equal => return i.to_string(),
+            Ordering::Greater => lower = i,
+        }
+
+        if upper == 0 {
+            i *= 2;
+        } else {
+            let new_i = (lower + upper) / 2;
+            if i == new_i {
+                panic!();
+            }
+            i = new_i;
+        }
+    }
 }
 
 #[allow(dead_code)]
